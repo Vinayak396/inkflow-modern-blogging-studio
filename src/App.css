@@ -2403,6 +2403,72 @@
   text-decoration: underline;
 }
 
+/* Google OAuth button */
+.google-btn-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+  min-height: 44px;
+}
+
+/* Iframe injected by GSI — make it fill the wrapper */
+.google-btn-wrapper iframe {
+  width: 100% !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-google-loading {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: -4px 0 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.auth-google-placeholder {
+  padding: 10px 14px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: #fbbf24;
+  margin-bottom: 12px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.auth-google-placeholder code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
 /* Navbar auth styles */
 .nav-user {
   display: flex;

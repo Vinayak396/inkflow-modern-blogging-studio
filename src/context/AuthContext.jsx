@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("inkflow-token");
     if (token) {
       api.getMe()
-        .then((data) => setUser({ id: data._id, name: data.name, email: data.email }))
+        .then((data) => setUser({ id: data._id, name: data.name, email: data.email, avatar: data.avatar }))
         .catch(() => localStorage.removeItem("inkflow-token"))
         .finally(() => setLoading(false));
     } else {
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       const data = await api.verifyOtp(userId, otp);
       if (data.error) return { error: data.error };
       localStorage.setItem("inkflow-token", data.token);
-      setUser({ id: data.user._id, name: data.user.name, email: data.user.email });
+      setUser({ id: data.user._id, name: data.user.name, email: data.user.email, avatar: data.user.avatar });
       return {};
     } catch {
       return { error: "Cannot connect to server. Please try again." };
@@ -57,7 +57,19 @@ export function AuthProvider({ children }) {
       if (data.error) return { error: data.error };
       if (data.needsVerification) return { needsVerification: true, userId: data.userId };
       localStorage.setItem("inkflow-token", data.token);
-      setUser({ id: data.user._id, name: data.user.name, email: data.user.email });
+      setUser({ id: data.user._id, name: data.user.name, email: data.user.email, avatar: data.user.avatar });
+      return {};
+    } catch {
+      return { error: "Cannot connect to server. Please try again." };
+    }
+  };
+
+  const googleLogin = async (credential) => {
+    try {
+      const data = await api.googleAuth(credential);
+      if (data.error) return { error: data.error };
+      localStorage.setItem("inkflow-token", data.token);
+      setUser({ id: data.user._id, name: data.user.name, email: data.user.email, avatar: data.user.avatar });
       return {};
     } catch {
       return { error: "Cannot connect to server. Please try again." };
@@ -70,7 +82,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signup, verifyOtp, resendOtp, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, signup, verifyOtp, resendOtp, login, logout, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );

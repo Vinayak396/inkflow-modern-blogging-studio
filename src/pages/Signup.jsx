@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
-  const { signup, verifyOtp, resendOtp } = useAuth();
+  const { signup, verifyOtp, resendOtp, googleLogin } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,6 +14,51 @@ export default function Signup() {
   const [userId, setUserId] = useState(null);
   const [otp, setOtp] = useState("");
   const [resendMsg, setResendMsg] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleBtnRef = useRef(null);
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || clientId === "YOUR_GOOGLE_CLIENT_ID_HERE") return;
+
+    const initGoogle = () => {
+      if (!window.google) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCallback,
+      });
+      if (googleBtnRef.current) {
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "filled_black",
+          size: "large",
+          width: googleBtnRef.current.offsetWidth || 340,
+          text: "signup_with",
+          shape: "rectangular",
+        });
+      }
+    };
+
+    if (window.google) {
+      initGoogle();
+    } else {
+      const interval = setInterval(() => {
+        if (window.google) { initGoogle(); clearInterval(interval); }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const handleGoogleCallback = async (response) => {
+    setGoogleLoading(true);
+    setError("");
+    const result = await googleLogin(response.credential);
+    setGoogleLoading(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      navigate("/");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,6 +162,9 @@ export default function Signup() {
     );
   }
 
+  const googleConfigured = import.meta.env.VITE_GOOGLE_CLIENT_ID &&
+    import.meta.env.VITE_GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID_HERE";
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -133,9 +181,23 @@ export default function Signup() {
           <p>Join InkFlow and start writing</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className="auth-error">{error}</div>}
+        {error && <div className="auth-error">{error}</div>}
 
+        {googleConfigured ? (
+          <>
+            <div ref={googleBtnRef} className="google-btn-wrapper" />
+            {googleLoading && <p className="auth-google-loading">Signing up with Google…</p>}
+            <div className="auth-divider">
+              <span>or</span>
+            </div>
+          </>
+        ) : (
+          <div className="auth-google-placeholder">
+            <span>⚠️ Add <code>VITE_GOOGLE_CLIENT_ID</code> to <code>.env</code> to enable Google Sign-Up</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="auth-field">
             <label>Full Name</label>
             <input

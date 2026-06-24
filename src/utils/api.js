@@ -33,6 +33,9 @@ const api = {
   getMe: () =>
     fetch(`${API_URL}/auth/me`, { headers: getHeaders() }).then(r => { if (!r.ok) throw new Error("Not authenticated"); return r.json(); }),
 
+  googleAuth: (credential) =>
+    fetch(`${API_URL}/auth/google`, { method: "POST", headers: getHeaders(), body: JSON.stringify({ credential }) }).then(r => r.json()),
+
   // Posts
   getPosts: (params) =>
     fetch(`${API_URL}/posts${buildQuery(params)}`, { headers: getHeaders() }).then(r => r.json()),

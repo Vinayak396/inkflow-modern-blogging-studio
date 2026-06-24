@@ -2,11 +2,18 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Gmail SMTP transporter — uses GMAIL_USER + GMAIL_APP_PASSWORD env vars
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -78,8 +85,8 @@ async function sendOTPEmail(email, otp) {
 </body>
 </html>`;
 
-  await resend.emails.send({
-    from: process.env.EMAIL_FROM || 'InkFlow <onboarding@resend.dev>',
+  await transporter.sendMail({
+    from: `InkFlow <${process.env.GMAIL_USER}>`,
     to: email,
     subject: `${otp} is your InkFlow verification code`,
     html,
@@ -217,9 +224,63 @@ router.get('/me', auth, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json({ _id: user._id, name: user.name, email: user.email });
+    res.json({ _id: user._id, name: user.name, email: user.email, avatar: user.avatar });
   } catch (err) {
     console.error('Get me error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Google OAuth — verify ID token, upsert user, return JWT
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ error: 'Missing Google credential' });
+    }
+
+    // Verify the Google ID token using Google's tokeninfo endpoint
+    const response = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`
+    );
+    const payload = await response.json();
+
+    if (payload.error_description || !payload.email_verified) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Find by googleId first, then by email (handles linking existing accounts)
+    let user = await User.findOne({ googleId });
+    if (!user) {
+      user = await User.findOne({ email });
+    }
+
+    if (user) {
+      // Update googleId + avatar if not already set
+      if (!user.googleId) user.googleId = googleId;
+      if (picture) user.avatar = picture;
+      user.verified = true;
+      await user.save();
+    } else {
+      // Create new Google-only user (no password)
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        avatar: picture || '',
+        verified: true,
+      });
+    }
+
+    const token = createToken(user);
+    res.json({
+      token,
+      user: { _id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+    });
+  } catch (err) {
+    console.error('Google auth error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
