@@ -70,7 +70,7 @@ inkflow/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/inkflow.git
+git clone https://github.com/Vinayak396/inkflow-modern-blogging-site.git
 cd inkflow
 ```
 
