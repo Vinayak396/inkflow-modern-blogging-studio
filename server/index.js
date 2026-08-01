@@ -10,6 +10,7 @@ const commentRoutes = require('./routes/comments');
 const likeRoutes = require('./routes/likes');
 const subscriptionRoutes = require('./routes/subscriptions');
 const editRequestRoutes = require('./routes/editRequests');
+const polishRoutes = require('./routes/polish');
 
 const app = express();
 
@@ -59,12 +60,23 @@ app.use('/api/auth/signup', authLimiter);
 app.use('/api/auth/verify-otp', otpLimiter);
 app.use('/api/auth/resend-otp', otpLimiter);
 
+// Polish limiter — 20 requests per hour per IP (shared Groq free key)
+const polishLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  message: { error: 'AI Polish is not available right now. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/polish', polishLimiter);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/likes', likeRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/edit-requests', editRequestRoutes);
+app.use('/api/polish', polishRoutes);
 
 // 404 handler for unknown API routes
 app.use((req, res) => {

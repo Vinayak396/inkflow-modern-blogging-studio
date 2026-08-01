@@ -19,8 +19,6 @@ export default function EditPost() {
 
   // AI Polish state
   const [showPolish, setShowPolish] = useState(false);
-  const [showKeyInput, setShowKeyInput] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem("groq-api-key") || "");
   const [originalSelection, setOriginalSelection] = useState("");
   const [polishedText, setPolishedText] = useState("");
   const [isPolishing, setIsPolishing] = useState(false);
@@ -155,12 +153,6 @@ export default function EditPost() {
       return;
     }
 
-    const key = localStorage.getItem("groq-api-key");
-    if (!key) {
-      setShowKeyInput(true);
-      return;
-    }
-
     const selected = selection.toString();
     selectionRef.current = selection.getRangeAt(0).cloneRange();
     setOriginalSelection(selected);
@@ -170,15 +162,10 @@ export default function EditPost() {
     setShowPolish(true);
 
     try {
-      const result = await polishText(key, selected);
+      const result = await polishText(selected);
       setPolishedText(result);
     } catch (err) {
-      const msg = err.message || "Something went wrong. Please try again.";
-      if (msg.includes("API key") || msg.includes("401") || msg.includes("403") || msg.includes("expired") || msg.includes("429")) {
-        setPolishError(msg + " — Try clicking 'Change API Key' to enter a new key.");
-      } else {
-        setPolishError(msg);
-      }
+      setPolishError(err.message || "Something went wrong. Please try again.");
     } finally {
       setIsPolishing(false);
     }
@@ -194,12 +181,6 @@ export default function EditPost() {
       syncContent();
     }
     setShowPolish(false);
-  };
-
-  const handleSaveKey = () => {
-    if (!apiKey.trim()) return;
-    localStorage.setItem("groq-api-key", apiKey.trim());
-    setShowKeyInput(false);
   };
 
   return (
@@ -391,30 +372,6 @@ export default function EditPost() {
           onAccept={handleAcceptPolish}
           onReject={() => setShowPolish(false)}
         />
-      )}
-
-      {/* API Key Input Modal */}
-      {showKeyInput && (
-        <div className="confirm-overlay" onClick={() => setShowKeyInput(false)}>
-          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <h3>Set up AI Polish</h3>
-            <p>Enter your free Groq API key to enable grammar polishing. Get one from groq.com/keys.</p>
-            <input
-              className="gemini-key-input"
-              type="password"
-              placeholder="Paste your Groq API key..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSaveKey()}
-            />
-            <div className="confirm-dialog-actions" style={{ marginTop: 16 }}>
-              <button className="btn btn-ghost" onClick={() => setShowKeyInput(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSaveKey} disabled={!apiKey.trim()}>
-                Save Key
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
