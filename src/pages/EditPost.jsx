@@ -17,8 +17,9 @@ export default function EditPost() {
   const [authorGithub, setAuthorGithub] = useState("");
   const [authorWebsite, setAuthorWebsite] = useState("");
 
-  // AI Polish state
+  // AI Polish / Enhance state
   const [showPolish, setShowPolish] = useState(false);
+  const [aiMode, setAiMode] = useState("polish");
   const [originalSelection, setOriginalSelection] = useState("");
   const [polishedText, setPolishedText] = useState("");
   const [isPolishing, setIsPolishing] = useState(false);
@@ -145,16 +146,17 @@ export default function EditPost() {
     navigate("/");
   };
 
-  // AI Polish handlers
-  const handlePolish = async () => {
+  // AI action handler (shared for polish and enhance)
+  const handleAIAction = async (mode) => {
     const selection = window.getSelection();
     if (!selection.rangeCount || selection.isCollapsed) {
-      alert("Select some text first, then click Polish.");
+      alert("Select some text first, then click Polish or Enhance.");
       return;
     }
 
     const selected = selection.toString();
     selectionRef.current = selection.getRangeAt(0).cloneRange();
+    setAiMode(mode);
     setOriginalSelection(selected);
     setPolishedText("");
     setPolishError(null);
@@ -162,7 +164,7 @@ export default function EditPost() {
     setShowPolish(true);
 
     try {
-      const result = await polishText(selected);
+      const result = await polishText(selected, mode);
       setPolishedText(result);
     } catch (err) {
       setPolishError(err.message || "Something went wrong. Please try again.");
@@ -170,6 +172,9 @@ export default function EditPost() {
       setIsPolishing(false);
     }
   };
+
+  const handlePolish = () => handleAIAction("polish");
+  const handleEnhance = () => handleAIAction("enhance");
 
   const handleAcceptPolish = () => {
     const range = selectionRef.current;
@@ -334,6 +339,15 @@ export default function EditPost() {
             </svg>
             Polish
           </button>
+
+          <button type="button" className="toolbar-btn toolbar-btn-enhance" onClick={handleEnhance}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            Enhance
+          </button>
         </div>
 
         <div
@@ -345,7 +359,7 @@ export default function EditPost() {
         />
 
         <div className="editor-footer">
-          <p className="editor-hint">Select text and click <strong>Polish</strong> to fix grammar and improve clarity. Use <strong>Ctrl+B</strong> for bold, <strong>Ctrl+I</strong> for italic.</p>
+          <p className="editor-hint">Select text and click <strong>Polish</strong> to fix grammar or <strong>Enhance</strong> to improve vocabulary &amp; style. Use <strong>Ctrl+B</strong> for bold, <strong>Ctrl+I</strong> for italic.</p>
           <span className="editor-wordcount">{wordCount} {wordCount === 1 ? "word" : "words"} · {Math.max(1, Math.round(wordCount / 200))} min read</span>
         </div>
       </div>
@@ -365,6 +379,7 @@ export default function EditPost() {
       {/* AI Polish Modal */}
       {showPolish && (
         <PolishModal
+          mode={aiMode}
           originalText={originalSelection}
           polishedText={polishedText}
           isLoading={isPolishing}

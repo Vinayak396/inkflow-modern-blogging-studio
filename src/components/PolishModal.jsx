@@ -1,13 +1,26 @@
-export default function PolishModal({ originalText, polishedText, isLoading, error, onAccept, onReject }) {
+export default function PolishModal({ mode = "polish", originalText, polishedText, isLoading, error, onAccept, onReject }) {
+  const isEnhance = mode === "enhance";
+  const title = isEnhance ? "AI Enhance" : "AI Polish";
+  const loadingText = isEnhance ? "Enhancing your text..." : "Polishing your text...";
+  const labelNew = isEnhance ? "Enhanced" : "Polished";
+
   return (
     <div className="confirm-overlay" onClick={onReject}>
       <div className="polish-modal" onClick={(e) => e.stopPropagation()}>
         <div className="polish-modal-header">
           <div className="polish-modal-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M12 3l1.912 5.813a2 2 0 001.272 1.278L21 12l-5.816 1.91a2 2 0 00-1.272 1.277L12 21l-1.912-5.813a2 2 0 00-1.272-1.278L3 12l5.816-1.91a2 2 0 001.272-1.277L12 3z" />
-            </svg>
-            AI Polish
+            {isEnhance ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 3l1.912 5.813a2 2 0 001.272 1.278L21 12l-5.816 1.91a2 2 0 00-1.272 1.277L12 21l-1.912-5.813a2 2 0 00-1.272-1.278L3 12l5.816-1.91a2 2 0 001.272-1.277L12 3z" />
+              </svg>
+            )}
+            {title}
           </div>
           <button className="polish-close-btn" onClick={onReject} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -35,13 +48,13 @@ export default function PolishModal({ originalText, polishedText, isLoading, err
                 <div className="polish-panel-text">{originalText}</div>
               </div>
               <div className="polish-panel polish-panel-new">
-                <span className="polish-panel-label polish-label-new">Polished</span>
+                <span className="polish-panel-label polish-label-new">{labelNew}</span>
                 {isLoading ? (
                   <div className="polish-loading">
                     <div className="polish-loading-dots">
                       <span /><span /><span />
                     </div>
-                    <p>Polishing your text...</p>
+                    <p>{loadingText}</p>
                   </div>
                 ) : (
                   <div className="polish-panel-text">{polishedText}</div>
