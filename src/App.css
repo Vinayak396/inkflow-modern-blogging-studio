@@ -3043,33 +3043,463 @@
   }
 }
 
+/* ==================== MOBILE DRAWER OVERLAY ==================== */
+.mobile-drawer-overlay {
+  display: none;
+}
+
+/* ==================== MOBILE BOTTOM NAV ==================== */
+.mobile-bottom-nav {
+  display: none;
+}
+
 /* ==================== RESPONSIVE ==================== */
-@media (max-width: 640px) {
-  .hero {
-    padding: 48px 20px 40px;
+
+/* ---- Tablet ---- */
+@media (max-width: 900px) {
+  .navbar-left {
+    margin-left: 60px;
+  }
+}
+
+/* ---- Mobile ---- */
+@media (max-width: 768px) {
+  /* Hide desktop sidebar entirely — replaced by bottom nav */
+  .sidebar {
+    display: none !important;
   }
 
-  .posts-section {
-    padding: 0 20px 60px;
+  /* When sidebar is pinned on mobile, show it as a full-height drawer from the left */
+  .sidebar.sidebar-pinned {
+    display: flex !important;
+    flex-direction: column;
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: var(--bg-primary);
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.2);
+    z-index: 400;
+    overflow-y: auto;
+    padding: 12px 8px;
+    animation: slideInLeft 0.22s ease;
   }
 
-  .editor-page {
-    padding: 32px 20px 60px;
+  .sidebar.sidebar-pinned .sidebar-label,
+  .sidebar.sidebar-pinned .sidebar-badge,
+  .sidebar.sidebar-pinned .sidebar-section-label {
+    opacity: 1;
   }
 
-  .blog-detail {
-    padding: 32px 20px 60px;
+  @keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(0); }
   }
 
+  /* Overlay behind mobile drawer */
+  .mobile-drawer-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 350;
+  }
+
+  /* Remove sidebar margin from layout on mobile */
+  .layout-with-sidebar {
+    margin-left: 0 !important;
+  }
+
+  /* Bottom navigation bar */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid var(--border);
+    z-index: 300;
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    padding: 6px 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    transition: color var(--transition);
+    border: none;
+    background: none;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--accent);
+  }
+
+  .mobile-nav-item svg {
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-nav-item.active svg {
+    transform: scale(1.1);
+  }
+
+  /* Write (create) button — elevated pill */
+  .mobile-nav-create {
+    color: var(--accent);
+  }
+
+  .mobile-nav-create-btn {
+    width: 44px;
+    height: 36px;
+    border-radius: 20px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+    transition: all var(--transition);
+  }
+
+  .mobile-nav-item.mobile-nav-create:active .mobile-nav-create-btn {
+    transform: scale(0.95);
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* Add bottom padding to page content so it isn't hidden behind the nav */
+  .layout {
+    padding-bottom: 60px;
+  }
+
+  /* Move the made-by badge and help FAB above the bottom nav */
+  .made-by-badge {
+    bottom: 72px;
+    right: 12px;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .help-fab {
+    bottom: 80px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .help-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    bottom: 140px;
+    max-height: calc(100vh - 200px);
+  }
+
+  /* Navbar adjustments */
   .navbar-inner {
-    padding: 0 16px;
+    padding: 0 12px 0 56px;
   }
 
   .navbar-brand {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .navbar-left {
+    margin-left: 0;
+  }
+
+  /* Hide desktop-only nav items */
+  .nav-link-desktop {
+    display: none;
+  }
+
+  .nav-icon-desktop {
+    display: none;
+  }
+
+  /* Hero section */
+  .hero {
+    padding: 40px 16px 32px;
+  }
+
+  .hero p {
+    font-size: 16px;
+  }
+
+  .hero-search {
+    max-width: 100%;
+  }
+
+  /* Posts section */
+  .posts-section {
+    padding: 0 16px 80px;
+  }
+
+  .posts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .tag-dropdown-wrapper {
+    padding: 0 16px 20px;
+  }
+
+  .tag-dropdown-menu {
+    left: 16px;
+  }
+
+  /* Editor page */
+  .editor-page {
+    padding: 24px 16px 80px;
+  }
+
+  .editor-page h1 {
+    font-size: 26px;
+    margin-bottom: 28px;
   }
 
   .editor-toolbar {
     flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .toolbar-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .toolbar-select {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  .editor-actions {
+    flex-direction: column;
+  }
+
+  .editor-actions .btn-lg {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .editor-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .editor-hint {
+    font-size: 12px;
+  }
+
+  /* Blog detail page */
+  .blog-detail {
+    padding: 24px 16px 80px;
+  }
+
+  .blog-detail h1 {
+    font-size: clamp(24px, 7vw, 36px);
+  }
+
+  .blog-detail-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .blog-actions-bar {
+    gap: 8px;
+  }
+
+  .blog-action-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  /* Author card */
+  .author-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .author-card-socials {
+    justify-content: center;
+  }
+
+  /* Related posts */
+  .related-posts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Comments */
+  .comment-form {
+    gap: 10px;
+  }
+
+  /* Profile page */
+  .profile-page {
+    padding: 24px 16px 80px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .profile-subscribe-btn {
+    margin-left: 0;
+  }
+
+  .profile-stats {
+    justify-content: center;
+    gap: 24px;
+    padding: 16px;
+  }
+
+  .profile-post-card {
+    flex-direction: column;
+  }
+
+  .profile-post-image,
+  .profile-post-placeholder {
+    width: 100%;
+    height: 160px;
+  }
+
+  /* Auth pages */
+  .auth-card {
+    padding: 28px 20px;
+  }
+
+  /* Edit requests page */
+  .edit-requests-page {
+    padding: 24px 16px 80px;
+  }
+
+  .request-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* About page */
+  .about-page {
+    padding: 40px 16px 80px;
+  }
+
+  .about-hero h1 {
+    font-size: 28px;
+  }
+
+  .about-tagline {
+    font-size: 15px;
+  }
+
+  .about-sections {
+    grid-template-columns: 1fr;
+  }
+
+  .about-cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .about-cta-buttons .btn {
+    justify-content: center;
+  }
+
+  /* Confirm dialog */
+  .confirm-dialog {
+    padding: 24px 20px;
+    margin: 0 16px;
+  }
+
+  .confirm-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-dialog-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Polish modal */
+  .polish-modal {
+    width: 96%;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .polish-modal-body {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  /* Saved posts */
+  .saved-post-link {
+    flex-direction: column;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 20px 16px;
+    font-size: 13px;
+    margin-bottom: 60px;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .navbar-brand {
+    font-size: 18px;
+  }
+
+  .mobile-bottom-nav {
+    height: 56px;
+  }
+
+  .mobile-nav-item {
+    font-size: 9px;
+  }
+
+  .mobile-nav-create-btn {
+    width: 38px;
+    height: 32px;
   }
 }
