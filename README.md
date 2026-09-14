@@ -70,7 +70,7 @@ inkflow/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Vinayak396/inkflow-modern-blogging-site.git
+git clone https://github.com/Vinayak396/inkflow-modern-blogging-studio.git
 cd inkflow
 ```
 
@@ -144,6 +144,7 @@ The app will be available at `http://localhost:5173`.
 | `PORT` | Port for the Express server (default: 5000) |
 | `FRONTEND_URL` | Allowed CORS origin(s), comma-separated |
 | `EMAIL_FROM` | Sender name and address for outgoing emails |
+| `GROQ_API_KEY` | Groq API key for AI Polish & Enhance (free from https://console.groq.com) |
 
 ### `inkflow/.env` (frontend)
 

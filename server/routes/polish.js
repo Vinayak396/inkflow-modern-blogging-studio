@@ -47,55 +47,80 @@ router.post('/', auth, async (req, res) => {
   const systemPrompt = PROMPTS[mode] || PROMPTS.polish;
 
   if (!process.env.GROQ_API_KEY) {
-    return res.status(503).json({ error: 'AI Polish is not available right now. Please try again later.' });
+    return res.status(503).json({ error: 'AI Polish is not configured. Please add GROQ_API_KEY to your server environment variables.' });
   }
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `${mode === 'enhance' ? 'Enhance' : 'Polish'} the following text:\n\n${text}` },
-        ],
-        temperature: mode === 'enhance' ? 0.6 : 0.3,
-        max_tokens: 2048,
-      }),
-    });
+  const candidateModels = [
+    process.env.GROQ_MODEL,
+    'llama-3.1-8b-instant',
+    'llama-3.3-70b-versatile',
+    'gemma2-9b-it',
+  ].filter(Boolean);
 
-    // Rate limit exhausted
-    if (response.status === 429) {
-      return res.status(503).json({ error: 'AI Polish is not available right now. Please try again later.' });
+  let lastError = null;
+  let lastStatus = 500;
+
+  for (const model of candidateModels) {
+    try {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.GROQ_API_KEY.trim()}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `${mode === 'enhance' ? 'Enhance' : 'Polish'} the following text:\n\n${text}` },
+          ],
+          temperature: mode === 'enhance' ? 0.6 : 0.3,
+          max_tokens: 2048,
+        }),
+      });
+
+      // Rate limit exhausted
+      if (response.status === 429) {
+        return res.status(503).json({ error: 'AI rate limit reached. Please wait a minute and try again.' });
+      }
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error(`Groq API error with model ${model}:`, response.status, err);
+        lastStatus = response.status;
+        lastError = err?.error?.message || `AI service returned error (${response.status}).`;
+
+        // Invalid API Key
+        if (response.status === 401) {
+          return res.status(500).json({ error: 'Invalid Groq API key on server. Please verify GROQ_API_KEY.' });
+        }
+
+        // Try next fallback model if model was decommissioned or not found
+        continue;
+      }
+
+      const data = await response.json();
+      const result = data.choices?.[0]?.message?.content?.trim();
+
+      if (!result) {
+        return res.status(500).json({ error: 'AI returned an empty response. Please try again.' });
+      }
+
+      // Safety check: if AI returned something way longer, it likely added content
+      if (result.length > text.length * 2.5 && text.length > 20) {
+        return res.status(500).json({ error: 'AI response was unexpected. Please try again with a shorter selection.' });
+      }
+
+      return res.json({ polished: result });
+    } catch (err) {
+      console.error(`Error connecting to Groq with model ${model}:`, err);
+      lastError = err.message;
     }
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      console.error('Groq API error:', response.status, err);
-      return res.status(500).json({ error: 'AI service error. Please try again.' });
-    }
-
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content?.trim();
-
-    if (!result) {
-      return res.status(500).json({ error: 'AI returned an empty response. Please try again.' });
-    }
-
-    // Safety check: if AI returned something way longer, it likely added content
-    if (result.length > text.length * 2.5 && text.length > 20) {
-      return res.status(500).json({ error: 'AI response was unexpected. Please try again with a shorter selection.' });
-    }
-
-    res.json({ polished: result });
-  } catch (err) {
-    console.error('Polish route error:', err);
-    res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
+
+  return res.status(lastStatus === 503 ? 503 : 500).json({
+    error: lastError || 'AI service error. Please try again.',
+  });
 });
 
 module.exports = router;
