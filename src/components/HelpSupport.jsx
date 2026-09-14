@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: "Where is my data stored?",
-    a: "All data is stored in your browser's local storage. Clearing browser data will remove your posts and account.",
+    a: "All posts, user accounts, and comments are securely stored in our cloud MongoDB database. Clearing your browser data will only log you out; your posts and account remain safe and synced across all your devices.",
   },
 ];
 
