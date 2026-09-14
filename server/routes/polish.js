@@ -31,6 +31,40 @@ STRICT RULES:
 - Return ONLY the enhanced text, nothing else`,
 };
 
+// Preferred active Groq models in priority order
+const PREFERRED_MODELS = [
+  'openai/gpt-oss-20b',
+  'openai/gpt-oss-120b',
+  'qwen/qwen3.6-27b',
+];
+
+let cachedActiveModels = null;
+let lastModelFetch = 0;
+
+// Dynamically fetch currently active models supported by the user's Groq account
+async function getAvailableGroqModels(apiKey) {
+  const now = Date.now();
+  if (cachedActiveModels && now - lastModelFetch < 3600000) {
+    return cachedActiveModels;
+  }
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/models', {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const activeIds = (data.data || []).map((m) => m.id);
+      cachedActiveModels = activeIds;
+      lastModelFetch = now;
+      return activeIds;
+    }
+  } catch (err) {
+    console.error('Failed to query Groq models endpoint:', err.message);
+  }
+  return null;
+}
+
 // POST /api/polish — requires auth
 // Body: { text: string, mode: "polish" | "enhance" }
 router.post('/', auth, async (req, res) => {
@@ -50,33 +84,65 @@ router.post('/', auth, async (req, res) => {
     return res.status(503).json({ error: 'AI Polish is not configured. Please add GROQ_API_KEY to your server environment variables.' });
   }
 
-  const candidateModels = [
-    process.env.GROQ_MODEL,
-    'llama-3.1-8b-instant',
-    'llama-3.3-70b-versatile',
-    'gemma2-9b-it',
-  ].filter(Boolean);
+  const apiKey = process.env.GROQ_API_KEY.trim();
+  const activeIds = await getAvailableGroqModels(apiKey);
+
+  let candidateModels = [];
+
+  if (process.env.GROQ_MODEL) {
+    candidateModels.push(process.env.GROQ_MODEL.trim());
+  }
+
+  if (activeIds && activeIds.length > 0) {
+    // 1. Check which of our preferred models are active on Groq
+    const foundPreferred = PREFERRED_MODELS.filter((m) => activeIds.includes(m));
+    candidateModels.push(...foundPreferred);
+
+    // 2. Fallback to any general text/chat model if none of preferred matched
+    if (candidateModels.length === 0) {
+      const generalModels = activeIds.filter(
+        (id) =>
+          !id.includes('whisper') &&
+          !id.includes('orpheus') &&
+          !id.includes('vision') &&
+          !id.includes('guard') &&
+          !id.includes('embed')
+      );
+      candidateModels.push(...generalModels);
+    }
+  }
+
+  // Fallback defaults if models endpoint could not be reached
+  if (candidateModels.length === 0) {
+    candidateModels = [...PREFERRED_MODELS];
+  }
 
   let lastError = null;
   let lastStatus = 500;
 
   for (const model of candidateModels) {
     try {
+      const payload = {
+        model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `${mode === 'enhance' ? 'Enhance' : 'Polish'} the following text:\n\n${text}` },
+        ],
+        temperature: mode === 'enhance' ? 0.6 : 0.3,
+        max_tokens: 2048,
+      };
+
+      if (model.includes('gpt-oss')) {
+        payload.reasoning_effort = 'low';
+      }
+
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.GROQ_API_KEY.trim()}`,
+          'Authorization': `Bearer ${apiKey}`,
         },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `${mode === 'enhance' ? 'Enhance' : 'Polish'} the following text:\n\n${text}` },
-          ],
-          temperature: mode === 'enhance' ? 0.6 : 0.3,
-          max_tokens: 2048,
-        }),
+        body: JSON.stringify(payload),
       });
 
       // Rate limit exhausted
