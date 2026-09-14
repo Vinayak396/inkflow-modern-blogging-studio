@@ -981,56 +981,150 @@
 
 .editor-toolbar {
   position: sticky;
-  top: var(--navbar-height);
+  top: calc(var(--navbar-height) + 12px);
   z-index: 100;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  margin-bottom: 14px;
+  transition: all var(--transition);
+}
+
+@media (prefers-color-scheme: dark) {
+  .editor-toolbar {
+    background: rgba(24, 20, 19, 0.72);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  }
 }
 
 .toolbar-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
+  padding: 7px 12px;
+  border: 1px solid rgba(125, 125, 125, 0.15);
   border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.45);
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .toolbar-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .toolbar-btn:hover {
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.85);
   color: var(--text-primary);
   border-color: var(--accent-border);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  .toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.toolbar-btn:active {
+  transform: translateY(0);
 }
 
 .toolbar-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
+}
+
+/* AI Polish Button — Glowing Violet Glass Pill */
+.toolbar-btn-polish {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(167, 139, 250, 0.14));
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.toolbar-btn-polish:hover {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.24), rgba(167, 139, 250, 0.24));
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  .toolbar-btn-polish {
+    color: #c4b5fd;
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+  .toolbar-btn-polish:hover {
+    color: #e0e7ff;
+    box-shadow: 0 4px 18px rgba(167, 139, 250, 0.35);
+  }
+}
+
+/* AI Enhance Button — Glowing Rose Glass Pill */
+.toolbar-btn-enhance {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.12), rgba(168, 85, 247, 0.12));
+  border: 1px solid rgba(236, 72, 153, 0.35);
+  color: #db2777;
+  font-weight: 600;
+}
+
+.toolbar-btn-enhance:hover {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(168, 85, 247, 0.22));
+  border-color: #ec4899;
+  color: #db2777;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  .toolbar-btn-enhance {
+    color: #f472b6;
+    border-color: rgba(244, 114, 182, 0.4);
+  }
+  .toolbar-btn-enhance:hover {
+    color: #fbcfe8;
+    box-shadow: 0 4px 18px rgba(236, 72, 153, 0.35);
+  }
 }
 
 .toolbar-select {
-  padding: 8px 12px;
-  border: 1px solid var(--border);
+  padding: 7px 12px;
+  border: 1px solid rgba(125, 125, 125, 0.15);
   border-radius: var(--radius-sm);
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.45);
   font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: all 0.18s ease;
   outline: none;
   font-family: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  .toolbar-select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
 }
 
 .toolbar-select:hover {
@@ -1042,45 +1136,36 @@
   border-color: var(--accent);
 }
 
-.editor-textarea {
-  width: 100%;
-  min-height: 300px;
-  margin-top: -1px;
-  padding: 20px;
-  border: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
-  background: var(--bg-secondary);
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--text-primary);
-  resize: vertical;
-  outline: none;
-  transition: border-color var(--transition);
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  opacity: 0.6;
+  margin: 0 2px;
+  flex-shrink: 0;
 }
 
-.editor-textarea:focus {
-  border-color: var(--accent);
-}
-
+.editor-textarea,
 .editor-content {
   width: 100%;
-  min-height: 300px;
-  margin-top: -1px;
-  padding: 20px;
+  min-height: 320px;
+  padding: 24px;
   border: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: var(--radius-lg);
   background: var(--bg-secondary);
   font-size: 15px;
-  line-height: 1.7;
+  line-height: 1.75;
   color: var(--text-primary);
   outline: none;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
   overflow-y: auto;
   word-wrap: break-word;
 }
 
+.editor-textarea:focus,
 .editor-content:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
 .editor-content-empty::before {
@@ -3299,9 +3384,11 @@
   }
 
   .editor-toolbar {
+    top: calc(var(--navbar-height) + 8px);
     flex-wrap: wrap;
     gap: 6px;
-    padding: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
   }
 
   .toolbar-btn {
